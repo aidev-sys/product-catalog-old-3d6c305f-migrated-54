@@ -2,6 +2,7 @@ package com.example.productcatalog.controller;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.stats.CacheStats;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.caffeine.CaffeineCache;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -15,9 +16,11 @@ import java.util.Map;
 public class CacheStatsController {
 
     private final CacheManager cacheManager;
+    private final RabbitTemplate rabbitTemplate;
 
-    public CacheStatsController(CacheManager cacheManager) {
+    public CacheStatsController(CacheManager cacheManager, RabbitTemplate rabbitTemplate) {
         this.cacheManager = cacheManager;
+        this.rabbitTemplate = rabbitTemplate;
     }
 
     @GetMapping
@@ -26,12 +29,16 @@ public class CacheStatsController {
         Cache<Object, Object> nativeCache = caffeineCache.getNativeCache();
         CacheStats stats = nativeCache.stats();
 
-        return Map.of(
+        Map<String, Object> cacheStats = Map.of(
             "size",       nativeCache.estimatedSize(),
             "hits",       stats.hitCount(),
             "misses",     stats.missCount(),
             "hitRate",    Math.round(stats.hitRate() * 100) + "%",
             "evictions",  stats.evictionCount()
         );
+
+        rabbitTemplate.convertAndSend("cache.stats", cacheStats);
+
+        return cacheStats;
     }
 }

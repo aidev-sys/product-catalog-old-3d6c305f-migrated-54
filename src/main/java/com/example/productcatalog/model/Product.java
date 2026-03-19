@@ -1,7 +1,10 @@
 package com.example.productcatalog.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "products")
@@ -11,38 +14,65 @@ public class Product {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
+    @NotBlank(message = "Name is required")
     private String name;
 
-    private String description;
-
-    @Column(nullable = false)
+    @NotNull(message = "Price is required")
     private BigDecimal price;
 
-    @Column(nullable = false)
-    private Integer stock;
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
 
-    public Product() {}
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
 
-    public Product(String name, String description, BigDecimal price, Integer stock) {
-        this.name = name;
-        this.description = description;
-        this.price = price;
-        this.stock = stock;
+    public Product() {
     }
 
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
+    public Product(String name, BigDecimal price) {
+        this.name = name;
+        this.price = price;
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
+    }
 
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
+    public Long getId() {
+        return id;
+    }
 
-    public String getDescription() { return description; }
-    public void setDescription(String description) { this.description = description; }
+    public void setId(Long id) {
+        this.id = id;
+    }
 
-    public BigDecimal getPrice() { return price; }
-    public void setPrice(BigDecimal price) { this.price = price; }
+    public String getName() {
+        return name;
+    }
 
-    public Integer getStock() { return stock; }
-    public void setStock(Integer stock) { this.stock = stock; }
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public BigDecimal getPrice() {
+        return price;
+    }
+
+    public void setPrice(BigDecimal price) {
+        this.price = price;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
 }
