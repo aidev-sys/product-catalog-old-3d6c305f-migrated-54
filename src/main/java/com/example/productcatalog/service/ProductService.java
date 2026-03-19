@@ -4,10 +4,11 @@ import com.example.productcatalog.messaging.ProductEventPublisher;
 import com.example.productcatalog.model.Product;
 import com.example.productcatalog.model.ProductNotFoundException;
 import com.example.productcatalog.repository.ProductRepository;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.cloud.stream.function.StreamBridge;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -17,12 +18,14 @@ public class ProductService {
 
     private final ProductRepository repository;
     private final ProductEventPublisher eventPublisher;
-    private final StreamBridge streamBridge;
+    private final RabbitTemplate rabbitTemplate;
+    @PersistenceContext
+    private EntityManager entityManager;
 
-    public ProductService(ProductRepository repository, ProductEventPublisher eventPublisher, StreamBridge streamBridge) {
+    public ProductService(ProductRepository repository, ProductEventPublisher eventPublisher, RabbitTemplate rabbitTemplate) {
         this.repository = repository;
         this.eventPublisher = eventPublisher;
-        this.streamBridge = streamBridge;
+        this.rabbitTemplate = rabbitTemplate;
     }
 
     public List<Product> getAllProducts() {
@@ -37,13 +40,13 @@ public class ProductService {
 
     public Product createProduct(Product product) {
         Product saved = repository.save(product);
-        streamBridge.send("product-created-out-0", saved);
+        rabbitTemplate.convertAndSend("product-created-exchange", "product.created", saved);
         return saved;
     }
 
     @CacheEvict(value = "products", key = "#id")
     public void deleteProduct(Long id) {
         repository.deleteById(id);
-        streamBridge.send("product-deleted-out-0", id);
+        rabbitTemplate.convertAndSend("product-deleted-exchange", "product.deleted", id);
     }
 }
