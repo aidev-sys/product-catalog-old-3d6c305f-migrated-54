@@ -1,5 +1,6 @@
 package com.example.productcatalog.controller;
 
+import jakarta.validation.Valid;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.cache.CacheManager;
 import org.springframework.web.bind.annotation.GetMapping;
